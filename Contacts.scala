@@ -18,18 +18,21 @@ object Contacts {
       writer.write("\n[format]\nprogram=abook\n")
       for (line <- Source.fromFile(input).getLines()) {
         if (line.startsWith("FN")) {
-          val names = line.split(":")
-          if (names.length > 1) {
-            name = names(1)
-            writer.write("\n[%" + count + "]\n")
-            writer.write("name=" + name + "\n")
+          writer.write("\n[%" + count + "]\n")
+          val nameOpt = extractData(line, ":", 1)
+          nameOpt match {
+            case Some(s) => {
+              name = nameOpt.get; 
+              writer.write("name=" + name + "\n")
+            }
+            case None =>
           }
         }
         if (line.startsWith("EMAIL")) {
-          val emailaddresses = line.split(":")
-          if (emailaddresses.length > 1) {
-            val email = emailaddresses(1)
-            emails += email
+          val emailOpt = extractData(line, ":", 1)
+          emailOpt match {
+            case Some(s) => emails += emailOpt.get
+            case None =>
           }
         }
         if (line.startsWith("TEL")) {
@@ -65,24 +68,21 @@ object Contacts {
           }
         }
         if (line.startsWith("ORG")) {
-          val orgs = line.split(":")
-          if (orgs.length > 1) {
-            val company = orgs(1)
-            if (company != "") {
-              if (name == "") {
-                writer.write("name=" + company + "\n")
-              } else {
-                writer.write("custom1=" + company + "\n")
-              }
+          val orgOpt = extractData(line, ":", 1)
+          orgOpt match {
+            case Some(s) => {
+              val company = orgOpt.get
+              if (name == "") writer.write("name=" + company + "\n")
+              else writer.write("custom1=" + company + "\n")
             }
+            case None =>
           }
         }
         if (line.startsWith("ADR")) {
           val adr_parts = line.split(";").zipWithIndex
           for ((part, index) <- adr_parts) {
             index match {
-              case 2 => writer.write("address=" + part + "\n")
-              case 3 => writer.write("address2=" + part + "\n")
+              case 3 => writer.write("address=" + part + "\n")
               case 4 => writer.write("city=" + part + "\n")
               case 5 => writer.write("state=" + part + "\n")
               case 6 => writer.write("zip=" + part + "\n")
@@ -92,9 +92,10 @@ object Contacts {
           }
         }
         if (line.startsWith("BDAY")) {
-          val bday_parts = line.split(":")
-          if (bday_parts.length > 1) {
-            writer.write("anniversary=" + bday_parts(1) + "\n")
+          val bdayOpt = extractData(line, ":", 1)
+          bdayOpt match {
+            case Some(s) => writer.write("anniversary=" + bdayOpt.get + "\n")
+            case None =>
           }
         }
         if (line.startsWith("END")) {
@@ -108,7 +109,7 @@ object Contacts {
             writer.write("mobile=" + mobilenumbers.toList.mkString(",") + "\n")
           }
           if (worknumbers.toList.length > 0) {
-            writer.write("work=" + worknumbers.toList.mkString(",") + "\n")
+            writer.write("workphone=" + worknumbers.toList.mkString(",") + "\n")
           }
           count += 1
           emails = new ListBuffer[String]()
@@ -124,5 +125,14 @@ object Contacts {
     } finally {
       writer.close()
     }
+  }
+
+  def extractData(line: String, separator: String, position: Int)
+    : Option[String] = {
+    val parts = line split separator
+    if (parts.length > position)
+      Some(parts(position))
+    else
+      None
   }
 }
