@@ -82,11 +82,12 @@ object Contacts {
           val adr_parts = line.split(";").zipWithIndex
           for ((part, index) <- adr_parts) {
             index match {
-              case 3 => writer.write("address=" + part + "\n")
-              case 4 => writer.write("city=" + part + "\n")
-              case 5 => writer.write("state=" + part + "\n")
-              case 6 => writer.write("zip=" + part + "\n")
-              case 7 => writer.write("country=" + part + "\n")
+              case 2 => if (part != "") writer.write("address2=" + part + "\n")
+              case 3 => if (part != "") writer.write("address=" + part + "\n")
+              case 4 => if (part != "") writer.write("city=" + part + "\n")
+              case 5 => if (part != "") writer.write("state=" + part + "\n")
+              case 6 => if (part != "") writer.write("zip=" + part + "\n")
+              case 7 => if (part != "") writer.write("country=" + part + "\n")
               case _ => 
             }
           }
