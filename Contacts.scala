@@ -79,19 +79,24 @@ object Contacts {
           }
         }
         if (line.startsWith("ADR")) {
+          var address_lines = new ListBuffer[String]()
           val adr_parts = line.split(";").zipWithIndex
           for ((part, index) <- adr_parts) {
             /*if (part != "") {
               println("Address part: " + part + ", index: " + index)
             }*/
             index match {
-              case 3 => if (part != "") writer.write("address_lines=" + part + "\n")
+              case 2 => if (part != "") address_lines += part
+              case 3 => if (part != "") address_lines += part
               case 4 => if (part != "") writer.write("city=" + part + "\n")
               case 5 => if (part != "") writer.write("state=" + part + "\n")
               case 6 => if (part != "") writer.write("zip=" + part + "\n")
               case 7 => if (part != "") writer.write("country=" + part + "\n")
               case _ => 
             }
+          }
+          if (address_lines.toList.length > 0) {
+            writer.write("address_lines=" + address_lines.toList.reverse.mkString(",") + "\n");
           }
         }
         if (line.startsWith("BDAY")) {
